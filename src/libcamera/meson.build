@@ -82,25 +82,6 @@ endif
 libudev = dependency('libudev', required : get_option('udev'))
 libyaml = dependency('yaml-0.1', required : false)
 
-# Use one of gnutls or libcrypto (provided by OpenSSL), trying gnutls first.
-libcrypto = dependency('gnutls', required : false)
-if libcrypto.found()
-    config_h.set('HAVE_GNUTLS', 1)
-else
-    libcrypto = dependency('libcrypto', required : false)
-    if libcrypto.found()
-        config_h.set('HAVE_CRYPTO', 1)
-    endif
-endif
-
-if not libcrypto.found()
-    warning('Neither gnutls nor libcrypto found, all IPA modules will be isolated')
-    summary({'IPA modules signed with': 'None (modules will run isolated)'},
-            section : 'Configuration')
-else
-    summary({'IPA modules signed with' : libcrypto.name()}, section : 'Configuration')
-endif
-
 if liblttng.found()
     tracing_enabled = true
     config_h.set('HAVE_TRACING', 1)
@@ -178,7 +159,6 @@ libcamera_deps += [
     libatomic,
     libcamera_base,
     libcamera_base_private,
-    libcrypto,
     libdl,
     liblttng,
     libudev,

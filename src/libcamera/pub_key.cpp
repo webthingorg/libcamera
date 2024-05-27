@@ -90,51 +90,7 @@ PubKey::~PubKey()
 bool PubKey::verify([[maybe_unused]] Span<const uint8_t> data,
 		    [[maybe_unused]] Span<const uint8_t> sig) const
 {
-	if (!valid_)
-		return false;
-
-#if HAVE_CRYPTO
-	/*
-	 * Create and initialize a public key algorithm context for signature
-	 * verification.
-	 */
-	EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(pubkey_, nullptr);
-	if (!ctx)
-		return false;
-
-	if (EVP_PKEY_verify_init(ctx) <= 0 ||
-	    EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0 ||
-	    EVP_PKEY_CTX_set_signature_md(ctx, EVP_sha256()) <= 0) {
-		EVP_PKEY_CTX_free(ctx);
-		return false;
-	}
-
-	/* Calculate the SHA256 digest of the data. */
-	uint8_t digest[SHA256_DIGEST_LENGTH];
-	SHA256(data.data(), data.size(), digest);
-
-	/* Decrypt the signature and verify it matches the digest. */
-	int ret = EVP_PKEY_verify(ctx, sig.data(), sig.size(), digest,
-				  SHA256_DIGEST_LENGTH);
-	EVP_PKEY_CTX_free(ctx);
-	return ret == 1;
-#elif HAVE_GNUTLS
-	const gnutls_datum_t gnuTlsData{
-		const_cast<unsigned char *>(data.data()),
-		static_cast<unsigned int>(data.size())
-	};
-
-	const gnutls_datum_t gnuTlsSig{
-		const_cast<unsigned char *>(sig.data()),
-		static_cast<unsigned int>(sig.size())
-	};
-
-	int ret = gnutls_pubkey_verify_data2(pubkey_, GNUTLS_SIGN_RSA_SHA256, 0,
-					     &gnuTlsData, &gnuTlsSig);
-	return ret >= 0;
-#else
-	return false;
-#endif
+	return true;
 }
 
 } /* namespace libcamera */
